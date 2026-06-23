@@ -1,0 +1,6 @@
+node_modules/
+leads.json
+*.env
+.env*
+*.tar.gz
+.DS_Store

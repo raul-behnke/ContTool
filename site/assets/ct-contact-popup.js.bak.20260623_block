@@ -1,0 +1,610 @@
+(function () {
+  var FORM_URL =
+    "https://docs.google.com/forms/d/e/1FAIpQLSe0LJ6TJkf9wxEk7BrCuE4n5LJySk9Ez4P0JjhgliPxc1vr_g/viewform?embedded=true";
+  var FORM_VIEW_URL =
+    "https://docs.google.com/forms/d/e/1FAIpQLSe0LJ6TJkf9wxEk7BrCuE4n5LJySk9Ez4P0JjhgliPxc1vr_g/viewform";
+  var CONTACT_FORM_ENDPOINT = "/api/contact";
+  var CONTACT_TRIGGER_TEXT_RE = /(fale\s*com\s*um\s*especialista|solicitar\s*demonstra[cç][aã]o|quero\s*conhecer\s*a\s*solu[cç][aã]o|entrar\s*em\s*contato|falar\s*com\s*a\s*cont\.?tool|agendar\s*apresenta[cç][aã]o|quero\s*uma\s*cota[cç][aã]o|contato|fale\s*conosco|fale\s*com|entre\s*em\s*contato|orcamento|orçamento|solicitar\s*contato|demonstra[cç][aã]o)/i;
+  var CONTACT_TRIGGER_HREF_RE = /#contato|#formulario-contato|mailto:|wa\.me|whatsapp|contato/i;
+  var NEW_ARTICLE = {
+    slug: "/blog/artigos/5s-na-industria/",
+    category: "Gestão de Ferramentas",
+    categoryHref: "/blog/categoria/Gest%C3%A3o%20de%20Ferramentas",
+    title:
+      "5S na Indústria: Como Aumentar Produtividade, Reduzir Desperdícios e Criar Processos Sustentáveis",
+    excerpt:
+      "Entenda como aplicar o 5S na indústria para aumentar produtividade, reduzir desperdícios e sustentar melhorias com processos e tecnologia.",
+    date: "24 Abr 2026",
+    image: "/blog/assets/gestao_de_ferrramentas-DQEqGCQG.webp",
+  };
+
+  var modal;
+  var overlay;
+  var modalHeader;
+
+  function injectStyles() {
+    if (document.getElementById("ct-popup-style")) return;
+
+    var style = document.createElement("style");
+    style.id = "ct-popup-style";
+    style.textContent = [
+      "#ct-contact-form-shell{width:100%;max-width:560px;}",
+      "#formulario-contato{display:flex;flex-direction:column;gap:20px;padding:28px;border-radius:28px;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);box-shadow:0 24px 54px rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.24);}",
+      "#formulario-contato .ct-contact-form-header{display:flex;flex-direction:column;gap:10px;color:#0D5B49;}",
+      "#formulario-contato .ct-contact-form-header h3{margin:0;font:800 28px/1.15 Arial,sans-serif;color:#0D5B49;}",
+      "#formulario-contato .ct-contact-form-header p{margin:0;font:400 15px/1.65 Arial,sans-serif;color:#3e5f57;}",
+      "#ct-contact-lead-form{display:grid;gap:16px;}",
+      "#ct-contact-lead-form .ct-form-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;}",
+      "#ct-contact-lead-form label{display:flex;flex-direction:column;gap:8px;font:700 14px/1.35 Arial,sans-serif;color:#154d40;}",
+      "#ct-contact-lead-form input,#ct-contact-lead-form select,#ct-contact-lead-form textarea{width:100%;border-radius:14px;border:1px solid #c8d8d1;background:#f7fbf9;color:#0D5B49;padding:14px 16px;font:400 15px/1.4 Arial,sans-serif;outline:none;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;}",
+      "#ct-contact-lead-form input::placeholder,#ct-contact-lead-form textarea::placeholder{color:#6e8e85;}",
+      "#ct-contact-lead-form input:focus,#ct-contact-lead-form select:focus,#ct-contact-lead-form textarea:focus{border-color:#0D5B49;box-shadow:0 0 0 4px rgba(77,224,192,.18);background:#fff;}",
+      "#ct-contact-lead-form textarea{min-height:140px;resize:vertical;}",
+      "#ct-contact-lead-form button[type='submit']{display:inline-flex;align-items:center;justify-content:center;min-height:56px;border:none;border-radius:14px;background:#67D46B;color:#091E1A;font:800 16px/1.2 Arial,sans-serif;letter-spacing:.02em;cursor:pointer;box-shadow:0 14px 32px rgba(0,0,0,.12);transition:transform .2s ease,filter .2s ease,opacity .2s ease;}",
+      "#ct-contact-lead-form button[type='submit']:hover{transform:translateY(-1px);filter:brightness(1.03);}",
+      "#ct-contact-lead-form button[type='submit'][disabled]{opacity:.7;cursor:wait;transform:none;}",
+      "#ct-contact-form-status{display:none;}",
+      "#ct-contact-form-status[data-state='error']{display:block;padding:14px 18px;border-radius:12px;background:#fef2f2;border:1px solid #fecaca;color:#b42318;font:600 14px/1.5 Arial,sans-serif;}",
+      "#ct-contact-success{display:flex;flex-direction:column;align-items:center;gap:16px;padding:32px 24px;text-align:center;}",
+      "#ct-contact-success .ct-success-icon{width:64px;height:64px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:32px;line-height:1;}",
+      "#ct-contact-success h3{margin:0;font:800 22px/1.2 Arial,sans-serif;color:#0D5B49;}",
+      "#ct-contact-success p{margin:0;font:400 15px/1.65 Arial,sans-serif;color:#3e5f57;}",
+      ".ct-field-error input,.ct-field-error select,.ct-field-error textarea{border-color:#f87171 !important;background:#fff5f5 !important;}",
+      ".ct-field-error-msg{font:600 12px/1 Arial,sans-serif;color:#b42318;margin-top:-4px;}",
+      "#ct-calculator-section{padding:72px 16px;background:linear-gradient(180deg,#f8fbfa 0%,#edf6f3 100%);border-top:1px solid #dbe7e3;border-bottom:1px solid #dbe7e3;}",
+      "#ct-calculator-section .ct-calculator-shell{max-width:1200px;margin:0 auto;}",
+      "#ct-calculator-section .ct-calculator-card{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:32px;align-items:center;background:#ffffff;border:1px solid #d6e4df;border-radius:28px;padding:40px;box-shadow:0 20px 45px rgba(4,94,76,.10);}",
+      "#ct-calculator-section .ct-calculator-copy{display:flex;flex-direction:column;gap:18px;color:#27433c;}",
+      "#ct-calculator-section .ct-calculator-eyebrow{display:inline-flex;align-items:center;gap:8px;width:max-content;padding:8px 14px;border-radius:999px;background:#e4f2ed;color:#045E4C;font:700 13px/1 Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;}",
+      "#ct-calculator-section h2{margin:0;color:#0f2f28;font:800 clamp(30px,4vw,48px)/1.08 Arial,sans-serif;}",
+      "#ct-calculator-section .ct-calculator-subtitle{margin:0;color:#045E4C;font:700 clamp(18px,2.1vw,24px)/1.35 Arial,sans-serif;}",
+      "#ct-calculator-section p{margin:0;font:400 17px/1.75 Arial,sans-serif;color:#38524b;}",
+      "#ct-calculator-section .ct-calculator-panel{display:flex;flex-direction:column;gap:18px;padding:28px;border-radius:24px;background:linear-gradient(180deg,#045E4C 0%,#0a7a61 100%);color:#fff;box-shadow:0 18px 36px rgba(4,94,76,.22);}",
+      "#ct-calculator-section .ct-calculator-panel-title{margin:0;font:800 24px/1.2 Arial,sans-serif;}",
+      "#ct-calculator-section .ct-calculator-panel p{color:rgba(255,255,255,.88);font-size:15px;line-height:1.7;}",
+      "#openCalculatorModal{display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:16px 24px;border:none;border-radius:14px;background:#67D46B;color:#09211b;font:800 16px/1.2 Arial,sans-serif;letter-spacing:.02em;cursor:pointer;box-shadow:0 14px 32px rgba(0,0,0,.18);transition:transform .2s ease,filter .2s ease;}",
+      "#openCalculatorModal:hover{transform:translateY(-1px);filter:brightness(1.03);}",
+      "#openCalculatorModal:focus-visible{outline:3px solid rgba(103,212,107,.45);outline-offset:3px;}",
+      "#ct-calculator-section .ct-calculator-note{font:600 13px/1.5 Arial,sans-serif;color:rgba(255,255,255,.76);}",
+      "#ct-contact-section{padding:72px 16px;background:linear-gradient(180deg,#f8fbfa 0%,#edf6f3 100%);border-top:1px solid #dbe7e3;border-bottom:1px solid #dbe7e3;display:flex;justify-content:center;}",
+      "#ct-contact-section #ct-contact-form-shell{max-width:560px;width:100%;}",
+      "#sobre .ct-sobre-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,440px);gap:36px;align-items:start;text-align:left;}",
+      "#sobre .ct-sobre-left{display:flex;flex-direction:column;gap:20px;align-items:flex-start;}",
+      "#sobre .ct-sobre-right{width:100%;}",
+      "#sobre .ct-sobre-right #ct-contact-form-shell{max-width:none;width:100%;}",
+      "@media (max-width:900px){#sobre .ct-sobre-grid{grid-template-columns:minmax(0,1fr);}#sobre .ct-sobre-left{align-items:center;text-align:center;}}",
+      "#ct-contact-floating-btn{position:fixed;right:20px;bottom:20px;z-index:9998;background:#28725E;color:#fff;border:none;border-radius:999px;padding:12px 16px;font:700 14px/1.2 Arial,sans-serif;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.18);transition:bottom .2s;}",
+      "#ct-contact-floating-btn:hover{filter:brightness(1.05);}",
+      "#ct-google-form-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999;}",
+      "#ct-google-form-overlay.open{display:flex;}",
+      "#ct-google-form-modal{background:#fff;width:min(900px,100%);height:min(90vh,820px);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 42px rgba(0,0,0,.32);}",
+      "#ct-google-form-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#f5f7f7;border-bottom:1px solid #e5e7eb;font:700 14px/1.2 Arial,sans-serif;color:#1f2937;}",
+      "#ct-google-form-actions{display:flex;align-items:center;gap:8px;}",
+      "#ct-google-form-open-link{display:inline-block;text-decoration:none;background:#28725E;color:#fff;border-radius:8px;padding:7px 10px;font:700 12px/1 Arial,sans-serif;}",
+      "#ct-google-form-close{border:none;background:#111827;color:#fff;border-radius:8px;padding:7px 10px;cursor:pointer;font:700 12px/1 Arial,sans-serif;}",
+      "#ct-google-form-iframe{width:100%;height:100%;border:0;}",
+      "@media (max-width:1024px){#ct-contact-floating-btn{bottom:calc(76px + env(safe-area-inset-bottom,0px));right:12px;}#ct-contact-form-shell{max-width:none;}#ct-contact-lead-form .ct-form-grid{grid-template-columns:minmax(0,1fr);}#ct-calculator-section .ct-calculator-card{grid-template-columns:minmax(0,1fr);}}",
+      "@media (max-width:640px){#formulario-contato{padding:22px;border-radius:22px;}#formulario-contato .ct-contact-form-header h3{font-size:24px;}#ct-calculator-section{padding:56px 16px;}#ct-calculator-section .ct-calculator-card{padding:24px;border-radius:22px;}#ct-calculator-section p{font-size:16px;line-height:1.7;}#ct-contact-floating-btn{padding:10px 14px;font-size:13px;}#ct-google-form-modal{height:min(92vh,900px);}}"
+    ].join("");
+    document.head.appendChild(style);
+  }
+
+  function ensureModal() {
+    if (overlay && modal) return;
+
+    overlay = document.createElement("div");
+    overlay.id = "ct-google-form-overlay";
+    overlay.setAttribute("aria-hidden", "true");
+
+    modal = document.createElement("div");
+    modal.id = "ct-google-form-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+
+    modalHeader = document.createElement("div");
+    modalHeader.id = "ct-google-form-header";
+    modalHeader.textContent = "Fale com a CONT.TOOL";
+
+    var actions = document.createElement("div");
+    actions.id = "ct-google-form-actions";
+
+    var openLink = document.createElement("a");
+    openLink.id = "ct-google-form-open-link";
+    openLink.href = FORM_VIEW_URL;
+    openLink.target = "_blank";
+    openLink.rel = "noopener noreferrer";
+    openLink.textContent = "Abrir em nova aba";
+
+    var closeBtn = document.createElement("button");
+    closeBtn.id = "ct-google-form-close";
+    closeBtn.type = "button";
+    closeBtn.textContent = "Fechar";
+    closeBtn.addEventListener("click", closeModal);
+
+    actions.appendChild(openLink);
+    actions.appendChild(closeBtn);
+    modalHeader.appendChild(actions);
+
+    var iframe = document.createElement("iframe");
+    iframe.id = "ct-google-form-iframe";
+    iframe.src = FORM_URL;
+    iframe.title = "Formulário de contato CONT.TOOL";
+    iframe.loading = "lazy";
+
+    modal.appendChild(modalHeader);
+    modal.appendChild(iframe);
+    overlay.appendChild(modal);
+
+    overlay.addEventListener("click", function (event) {
+      if (event.target === overlay) closeModal();
+    });
+
+    document.body.appendChild(overlay);
+  }
+
+  function openModal(title) {
+    ensureModal();
+    if (modalHeader) {
+      modalHeader.firstChild.textContent = title || "Fale com a CONT.TOOL";
+    }
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    if (!overlay) return;
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  function isContactTrigger(element) {
+    if (!element) return false;
+    if (element.dataset && element.dataset.noPopup === "true") return false;
+    if (element.id === "openCalculatorModal") return false;
+    if (element.closest && element.closest("#ct-calculator-section")) return false;
+    if (element.closest && element.closest("#ct-contact-form-shell")) return false;
+
+    var href = (element.getAttribute("href") || "").trim();
+    var text = (element.innerText || element.textContent || "").trim();
+    var ariaLabel = element.getAttribute("aria-label") || "";
+    var title = element.getAttribute("title") || "";
+    var mergedText = [text, ariaLabel, title].join(" ");
+
+    if (CONTACT_TRIGGER_HREF_RE.test(href)) return true;
+    return CONTACT_TRIGGER_TEXT_RE.test(mergedText);
+  }
+
+  function scrollToContactForm() {
+    var target = document.getElementById("formulario-contato");
+    if (!target) return;
+
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    var firstField = target.querySelector("input,select,textarea");
+    if (firstField) {
+      window.setTimeout(function () {
+        firstField.focus({ preventScroll: true });
+      }, 500);
+    }
+  }
+
+  function addFloatingButton() {
+    if (document.getElementById("ct-contact-floating-btn")) return;
+
+    var button = document.createElement("button");
+    button.id = "ct-contact-floating-btn";
+    button.type = "button";
+    button.textContent = "Contato";
+    button.addEventListener("click", scrollToContactForm);
+    document.body.appendChild(button);
+  }
+
+  function isGeneralArticlesPage() {
+    return /\/blog\/artigos\/?$/.test(window.location.pathname);
+  }
+
+  function updateCardContent(card) {
+    var articleLinks = card.querySelectorAll("a[href^='/blog/artigos/']");
+    articleLinks.forEach(function (link) {
+      link.setAttribute("href", NEW_ARTICLE.slug);
+    });
+
+    var categoryLink = card.querySelector("a[href^='/blog/categoria/']");
+    if (categoryLink) categoryLink.setAttribute("href", NEW_ARTICLE.categoryHref);
+
+    var categoryBadge = categoryLink ? categoryLink.querySelector("span") : null;
+    if (categoryBadge) categoryBadge.textContent = NEW_ARTICLE.category;
+
+    var image = card.querySelector("img");
+    if (image) {
+      image.setAttribute("src", NEW_ARTICLE.image);
+      image.setAttribute("alt", NEW_ARTICLE.title);
+    }
+
+    var title = card.querySelector("h3");
+    if (title) title.textContent = NEW_ARTICLE.title;
+
+    var excerpt = card.querySelector("p.text-gray-600");
+    if (excerpt) excerpt.textContent = NEW_ARTICLE.excerpt;
+
+    var dateNode = card.querySelector(".flex.items-center.text-xs.text-gray-500.mb-3.gap-2 span");
+    if (dateNode) dateNode.textContent = NEW_ARTICLE.date;
+  }
+
+  function injectGeneralArticlesCard(root) {
+    return; // desativado: artigos 5s/feimec agora vêm nativos no bundle do blog
+    if (!isGeneralArticlesPage()) return;
+
+    var scope = root || document;
+    var grids = scope.querySelectorAll
+      ? scope.querySelectorAll("div.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3.gap-8")
+      : [];
+
+    if (!grids.length) {
+      grids = document.querySelectorAll(
+        "div.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3.gap-8"
+      );
+    }
+
+    grids.forEach(function (grid) {
+      if (!grid || !grid.querySelector("a[href^='/blog/artigos/']")) return;
+      if (grid.querySelector("a[href='/blog/artigos/5s-na-industria/'], a[href='/blog/artigos/5s-na-industria']")) return;
+
+      var firstCard = grid.firstElementChild;
+      if (!firstCard) return;
+
+      var card = firstCard.cloneNode(true);
+      updateCardContent(card);
+      grid.insertBefore(card, grid.firstChild);
+    });
+  }
+
+  function buildCalcSection() {
+    var section = document.createElement("section");
+    section.id = "ct-calculator-section";
+    section.innerHTML = [
+      '<div class="ct-calculator-shell">',
+      '  <div class="ct-calculator-card">',
+      '    <div class="ct-calculator-copy">',
+      '      <span class="ct-calculator-eyebrow">Simulador de economia</span>',
+      "      <h2>Calculadora de Redução de Custos Cont.Tool</h2>",
+      '      <p class="ct-calculator-subtitle">Simule o potencial de economia da sua usinagem com uma gestão automatizada de ferramentas e insumos.</p>',
+      "      <p>A falta de controle nas retiradas, consumo e reposição de ferramentas pode gerar desperdícios, compras desnecessárias e paradas de produção.</p>",
+      "      <p>Com a Cont.Tool, sua empresa passa a ter rastreabilidade, controle de estoque, dados de consumo e gestão automatizada para tomar decisões com base em informações reais.</p>",
+      "      <p>Preencha a calculadora e veja uma estimativa inicial do potencial de redução de custos da sua operação.</p>",
+      "    </div>",
+      '    <div class="ct-calculator-panel">',
+      '      <h3 class="ct-calculator-panel-title">Descubra onde sua operação pode economizar</h3>',
+      "      <p>Abra a calculadora, preencha os dados essenciais da sua usinagem e receba uma estimativa inicial para identificar oportunidades de redução de custos com mais clareza.</p>",
+      '      <button id="openCalculatorModal" type="button">Calcular minha economia</button>',
+      '      <span class="ct-calculator-note">O formulário abre em um modal responsivo com navegação confortável em desktop e mobile.</span>',
+      "    </div>",
+      "  </div>",
+      "</div>",
+    ].join("");
+    var button = section.querySelector("#openCalculatorModal");
+    if (button) {
+      button.addEventListener("click", function () {
+        openModal("Calculadora de Redução de Custos Cont.Tool");
+      });
+    }
+    return section;
+  }
+
+  function buildStandaloneFormSection() {
+    var shell = buildContactShell();
+    var section = document.createElement("section");
+    section.id = "ct-contact-section";
+    section.appendChild(shell);
+    bindLeadForm(shell);
+    return section;
+  }
+
+  // Remove duplicatas do mesmo id (React + injeção manual podem gerar 2).
+  function ctDedupe(id) {
+    var els = document.querySelectorAll("#" + id);
+    for (var i = 1; i < els.length; i++) {
+      if (els[i] && els[i].parentNode) els[i].parentNode.removeChild(els[i]);
+    }
+  }
+
+  function removeById(id) {
+    var el = document.getElementById(id);
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  // Blog (landing /blog): coloca o card do formulário à DIREITA da seção
+  // "#sobre" (SOBRE A CONT.TOOL), com o conteúdo (título/texto/botão) à esquerda.
+  function placeBlogForm(shell) {
+    var sobre = document.getElementById("sobre");
+    if (!sobre) return false;
+    var inner = sobre.querySelector("div");
+    if (!inner) return false;
+
+    if (inner.getAttribute("data-ct-sobre") !== "1") {
+      inner.setAttribute("data-ct-sobre", "1");
+      var left = document.createElement("div");
+      left.className = "ct-sobre-left";
+      while (inner.firstChild) left.appendChild(inner.firstChild);
+      inner.classList.remove("text-center");
+      inner.classList.add("ct-sobre-grid");
+      var right = document.createElement("div");
+      right.className = "ct-sobre-right";
+      inner.appendChild(left);
+      inner.appendChild(right);
+    }
+    var rightCol = inner.querySelector(".ct-sobre-right");
+    if (rightCol && shell.parentNode !== rightCol) rightCol.appendChild(shell);
+    return true;
+  }
+
+  // Mantém calculadora + formulário ancorados no fim do conteúdo (dentro do <main>,
+  // footer é irmão depois → ficam logo acima do footer). No blog landing o form vai
+  // ao lado do #sobre. Roda a cada tick do observer e auto-corrige posição/duplicatas.
+  function ensureBottomSections() {
+    ctDedupe("ct-contact-floating-btn");
+    ctDedupe("ct-contact-form-shell");
+    ctDedupe("ct-contact-section");
+    ctDedupe("ct-calculator-section");
+
+    var main = document.querySelector("main");
+    if (!main) return; // aguarda o app React montar o <main>
+
+    var path = currentPath();
+    var isBlogLanding = path === "/blog";
+    var wantForm = path !== "/" && path !== "/obrigado"; // produtos, blog, artigos
+    var wantCalc = path === "/" || path === "/produtos";
+
+    // 1) Formulário (home usa o #cadastro do React, tratado à parte)
+    if (wantForm) {
+      if (isBlogLanding && document.getElementById("sobre")) {
+        // Blog landing: card direto ao lado do #sobre (sem wrapper de seção)
+        removeById("ct-contact-section");
+        var shell = document.getElementById("ct-contact-form-shell");
+        if (!shell) {
+          shell = buildContactShell();
+          bindLeadForm(shell);
+        }
+        placeBlogForm(shell);
+      } else {
+        // Produtos / artigos: seção própria como último filho do main
+        var fsec = document.getElementById("ct-contact-section");
+        if (!fsec) fsec = buildStandaloneFormSection();
+        if (fsec.parentNode !== main || main.lastElementChild !== fsec) {
+          main.appendChild(fsec);
+        }
+      }
+    } else {
+      removeById("ct-contact-section"); // limpa sobra ao trocar de view
+    }
+
+    // 2) Calculadora — logo ACIMA do formulário de contato (home e produtos)
+    if (wantCalc) {
+      var calc = document.getElementById("ct-calculator-section");
+      if (!calc) calc = buildCalcSection();
+
+      var anchor = null;
+      if (path === "/") {
+        // Âncora estável: a própria seção React #cadastro ("Fale com a Cont.Tool"),
+        // independente da troca do form (evita falha por timing/re-render).
+        anchor = document.getElementById("cadastro");
+      } else {
+        anchor = document.getElementById("ct-contact-section"); // form standalone
+      }
+
+      if (anchor && anchor.parentNode) {
+        if (calc.nextElementSibling !== anchor || calc.parentNode !== anchor.parentNode) {
+          anchor.parentNode.insertBefore(calc, anchor);
+        }
+      } else if (calc.parentNode !== main || main.lastElementChild !== calc) {
+        main.appendChild(calc); // âncora ainda não pronta: estaciona no fim do main
+      }
+    } else {
+      removeById("ct-calculator-section");
+    }
+  }
+
+  function currentPath() {
+    var p = (window.location.pathname || "/").replace(/\/+$/, "");
+    return p === "" ? "/" : p;
+  }
+
+  function buildContactShell() {
+    var shell = document.createElement("div");
+    shell.id = "ct-contact-form-shell";
+    shell.innerHTML = [
+      '<div id="formulario-contato">',
+      '  <div class="ct-contact-form-header">',
+      "    <h3>Fale com a Cont.Tool</h3>",
+      "    <p>Preencha seus dados e nosso time entra em contato.</p>",
+      "  </div>",
+      '  <form id="ct-contact-lead-form" novalidate>',
+      '    <div class="ct-form-grid">',
+      '      <label>Nome completo *<input name="nome_completo" type="text" autocomplete="name" placeholder="Seu nome" /></label>',
+      '      <label>WhatsApp / Telefone *<input name="telefone_whatsapp" type="tel" autocomplete="tel" placeholder="(00) 00000-0000" /></label>',
+      "    </div>",
+      '    <div class="ct-form-grid">',
+      '      <label>E-mail<input name="email_corporativo" type="email" autocomplete="email" placeholder="nome@empresa.com.br" /></label>',
+      '      <label>Empresa<input name="empresa" type="text" autocomplete="organization" placeholder="Nome da empresa" /></label>',
+      "    </div>",
+      '    <button type="submit">Enviar</button>',
+      '    <div id="ct-contact-form-status" aria-live="polite"></div>',
+      "  </form>",
+      "</div>",
+    ].join("");
+    return shell;
+  }
+
+  function bindLeadForm(shell) {
+    var leadForm = shell.querySelector("#ct-contact-lead-form");
+    if (leadForm) {
+      leadForm.addEventListener("submit", handleContactFormSubmit);
+    }
+  }
+
+  // Home: substitui o formulário React existente (#cadastro) pelo lead form.
+  // Demais páginas (produtos/blog/artigos) usam ensureBottomSections().
+  function injectContactForm() {
+    if (document.getElementById("ct-contact-form-shell")) return;
+    var reactForm = document.querySelector("#cadastro form");
+    if (!reactForm) return;
+    var shell = buildContactShell();
+    reactForm.replaceWith(shell);
+    bindLeadForm(shell);
+  }
+
+  async function handleContactFormSubmit(event) {
+    event.preventDefault();
+
+    var form = event.currentTarget;
+    if (!form) return;
+
+    // Validação dos campos obrigatórios
+    var nomeInput = form.querySelector('[name="nome_completo"]');
+    var telefoneInput = form.querySelector('[name="telefone_whatsapp"]');
+    var hasError = false;
+
+    [nomeInput, telefoneInput].forEach(function (input) {
+      if (!input) return;
+      var label = input.closest("label");
+      var existing = label && label.querySelector(".ct-field-error-msg");
+      if (existing) existing.remove();
+      if (label) label.classList.remove("ct-field-error");
+
+      if (!input.value.trim()) {
+        hasError = true;
+        if (label) {
+          label.classList.add("ct-field-error");
+          var msg = document.createElement("span");
+          msg.className = "ct-field-error-msg";
+          msg.textContent = "Campo obrigatório";
+          label.appendChild(msg);
+        }
+      }
+    });
+
+    if (hasError) return;
+
+    var submitButton = form.querySelector("button[type='submit']");
+    var status = form.querySelector("#ct-contact-form-status");
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Enviando...";
+    }
+    if (status) {
+      status.textContent = "";
+      status.dataset.state = "";
+    }
+
+    try {
+      var formData = new FormData(form);
+      var jsonBody = {};
+      formData.forEach(function(value, key) { jsonBody[key] = value; });
+
+      var response = await fetch(CONTACT_FORM_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(jsonBody),
+      });
+
+      var payload = await response.json().catch(function () { return {}; });
+
+      if (!response.ok || payload.success === false || payload.success === "false") {
+        throw new Error(payload.message || "Falha ao enviar.");
+      }
+
+      // Substitui o conteúdo do card por mensagem de sucesso
+      var card = document.getElementById("formulario-contato");
+      if (card) {
+        card.innerHTML = [
+          '<div id="ct-contact-success">',
+          '  <div class="ct-success-icon">✓</div>',
+          "  <h3>Mensagem enviada!</h3>",
+          "  <p>Recebemos seus dados e nosso time entrará em contato em breve pelo WhatsApp ou e-mail.</p>",
+          "</div>",
+        ].join("");
+      }
+    } catch (error) {
+      if (status) {
+        status.dataset.state = "error";
+        status.textContent =
+          "Não foi possível enviar agora. Tente novamente ou escreva para contato@conttool.com.";
+      }
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Enviar";
+      }
+    }
+  }
+
+  function bindGlobalEvents() {
+    if (window.__ctPopupEventsBound) return;
+    window.__ctPopupEventsBound = true;
+
+    document.addEventListener("click", function (event) {
+      var trigger = event.target.closest("a,button,[role='button']");
+      if (!trigger) return;
+      if (trigger.closest("#ct-google-form-modal")) return;
+
+      if (isContactTrigger(trigger)) {
+        event.preventDefault();
+        event.stopPropagation();
+        scrollToContactForm();
+      }
+    }, true);
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeModal();
+    });
+
+    window.addEventListener("pageshow", function () { closeModal(); });
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) return;
+      if (!overlay || !overlay.classList.contains("open")) {
+        document.body.style.overflow = "";
+      }
+    });
+  }
+
+  function observeDom() {
+    if (window.__ctPopupObserverBound) return;
+    window.__ctPopupObserverBound = true;
+
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        mutation.addedNodes.forEach(function (node) {
+          if (node && node.nodeType === 1) {
+            injectContactForm();
+            ensureBottomSections();
+          }
+        });
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  function init() {
+    injectStyles();
+    addFloatingButton();
+    injectContactForm();
+    ensureBottomSections();
+    ensureModal();
+    bindGlobalEvents();
+    observeDom();
+
+    window.openContactFormPopup = scrollToContactForm;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();

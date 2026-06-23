@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog CONT.TOOL</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#28725E',
+              accent: '#3CE6BA',
+              input: '#E5E7EB',
+              background: '#FFFFFF',
+              'accent-foreground': '#111827',
+            },
+            fontFamily: {
+              roboto: ['Roboto', 'sans-serif'],
+              raleway: ['Raleway', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+    <script type="module" crossorigin src="/blog/assets/index-DLkcxZuc.js?v=1771997580"></script>
+    <link rel="stylesheet" crossorigin href="/blog/assets/index-Cfq27kzH.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
