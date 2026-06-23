@@ -37,7 +37,7 @@ export default auth(async (req) => {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
-        path: "/admin",
+        path: "/blog/admin",
         maxAge: 60 * 60 * 8,
       });
       return res;
