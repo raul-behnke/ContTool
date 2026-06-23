@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  basePath: "/blog",
+  output: "standalone",
+  images: { remotePatterns: [] },
 };
 
 export default nextConfig;
