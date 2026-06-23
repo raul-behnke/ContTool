@@ -1,0 +1,45 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  totpSecret   String?
+  createdAt    DateTime  @default(now())
+  articles     Article[]
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  slug     String    @unique
+  articles Article[]
+}
+
+model Article {
+  id             Int        @id @default(autoincrement())
+  slug           String     @unique
+  title          String
+  excerpt        String
+  contentMd      String
+  status         String     @default("draft")
+  coverImage     String?
+  authorName     String
+  authorId       String?
+  author         User?      @relation(fields: [authorId], references: [id])
+  seoTitle       String?
+  seoDescription String?
+  readingTime    Int        @default(0)
+  publishedAt    DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  categories     Category[]
+}
