@@ -18,7 +18,7 @@ export function ContactForm() {
       empresa: String(fd.get("empresa") ?? ""),
     };
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/blog/api/contact", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
