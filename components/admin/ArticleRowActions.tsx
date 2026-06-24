@@ -35,12 +35,27 @@ export function ArticleRowActions({ id, status }: Props) {
   }
 
   return (
-    <span style={{ display: "inline-flex", gap: 8 }}>
-      <Link href={`/admin/articles/${id}/edit`}>Editar</Link>
-      <button type="button" disabled={busy} onClick={togglePublish}>
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      <Link
+        href={`/admin/articles/${id}/edit`}
+        className="rounded-md border border-[#d6e4df] bg-white px-2.5 py-1 text-xs font-medium text-[#1f2937] transition hover:border-[#045E4C] hover:text-[#045E4C]"
+      >
+        Editar
+      </Link>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={togglePublish}
+        className="rounded-md border border-[#d6e4df] bg-white px-2.5 py-1 text-xs font-medium text-[#045E4C] transition hover:bg-[#f6f9f8] disabled:opacity-50"
+      >
         {status === "published" ? "Despublicar" : "Publicar"}
       </button>
-      <button type="button" disabled={busy} onClick={onDelete} style={{ color: "crimson" }}>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onDelete}
+        className="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+      >
         Deletar
       </button>
     </span>

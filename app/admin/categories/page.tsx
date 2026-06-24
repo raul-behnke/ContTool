@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 type Category = { id: number; name: string; slug: string };
+
+const inputClass =
+  "w-full rounded-lg border border-[#d6e4df] bg-white px-3 py-2 text-sm outline-none transition focus:border-[#045E4C] focus:ring-2 focus:ring-[#045E4C]/30";
 
 export default function CategoriesPage() {
   const [items, setItems] = useState<Category[]>([]);
@@ -55,53 +57,84 @@ export default function CategoriesPage() {
   }
 
   return (
-    <main style={{ maxWidth: 640, margin: "40px auto", fontFamily: "system-ui", padding: "0 16px" }}>
-      <Link href="/admin">← Painel</Link>
-      <h1>Categorias</h1>
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+    <main className="mx-auto max-w-2xl px-4 py-8 font-sans text-[#1f2937]">
+      <h1 className="mb-6 text-2xl font-bold text-[#0D5B49]">Categorias</h1>
+      {error && (
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
 
-      <div style={{ display: "flex", gap: 8, margin: "16px 0" }}>
-        <input
-          placeholder="Nova categoria"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ flex: 1, padding: 8 }}
-        />
-        <button onClick={create}>Criar</button>
+      <div className="mb-6 rounded-2xl border border-[#d6e4df] bg-white p-5 shadow-[0_4px_20px_rgba(4,94,76,0.05)]">
+        <div className="flex gap-2">
+          <input
+            placeholder="Nova categoria"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClass}
+          />
+          <button
+            onClick={create}
+            className="shrink-0 rounded-lg bg-[#045E4C] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0D5B49]"
+          >
+            Criar
+          </button>
+        </div>
       </div>
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
+      <ul className="divide-y divide-[#eef3f1] overflow-hidden rounded-2xl border border-[#d6e4df] bg-white shadow-[0_4px_20px_rgba(4,94,76,0.05)]">
         {items.map((c) => (
-          <li
-            key={c.id}
-            style={{ display: "flex", gap: 8, alignItems: "center", padding: "6px 0", borderBottom: "1px solid #eee" }}
-          >
+          <li key={c.id} className="flex items-center gap-2 px-5 py-3">
             {editId === c.id ? (
               <>
-                <input value={editName} onChange={(e) => setEditName(e.target.value)} style={{ flex: 1, padding: 6 }} />
-                <button onClick={() => rename(c.id)}>Salvar</button>
-                <button onClick={() => setEditId(null)}>Cancelar</button>
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className={inputClass}
+                />
+                <button
+                  onClick={() => rename(c.id)}
+                  className="shrink-0 rounded-lg bg-[#045E4C] px-3 py-1.5 text-sm font-medium text-white transition hover:bg-[#0D5B49]"
+                >
+                  Salvar
+                </button>
+                <button
+                  onClick={() => setEditId(null)}
+                  className="shrink-0 rounded-lg border border-[#d6e4df] px-3 py-1.5 text-sm font-medium text-[#1f2937] transition hover:bg-[#f6f9f8]"
+                >
+                  Cancelar
+                </button>
               </>
             ) : (
               <>
-                <span style={{ flex: 1 }}>
-                  {c.name} <small style={{ color: "#888" }}>/{c.slug}</small>
+                <span className="flex-1">
+                  {c.name}{" "}
+                  <small className="text-gray-400">/{c.slug}</small>
                 </span>
                 <button
                   onClick={() => {
                     setEditId(c.id);
                     setEditName(c.name);
                   }}
+                  className="rounded-lg border border-[#d6e4df] px-3 py-1.5 text-sm font-medium text-[#1f2937] transition hover:border-[#045E4C] hover:text-[#045E4C]"
                 >
                   Renomear
                 </button>
-                <button onClick={() => remove(c.id)} style={{ color: "crimson" }}>
+                <button
+                  onClick={() => remove(c.id)}
+                  className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                >
                   Deletar
                 </button>
               </>
             )}
           </li>
         ))}
+        {items.length === 0 && (
+          <li className="px-5 py-10 text-center text-gray-400">
+            Nenhuma categoria ainda.
+          </li>
+        )}
       </ul>
     </main>
   );

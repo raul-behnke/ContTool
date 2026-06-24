@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 type User = { id: string; name: string; email: string };
+
+const inputClass =
+  "w-full rounded-lg border border-[#d6e4df] bg-white px-3 py-2 text-sm outline-none transition focus:border-[#045E4C] focus:ring-2 focus:ring-[#045E4C]/30";
 
 export default function UsersPage() {
   const [items, setItems] = useState<User[]>([]);
@@ -64,35 +66,64 @@ export default function UsersPage() {
   }
 
   return (
-    <main style={{ maxWidth: 640, margin: "40px auto", fontFamily: "system-ui", padding: "0 16px" }}>
-      <Link href="/admin">← Painel</Link>
-      <h1>Usuários</h1>
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+    <main className="mx-auto max-w-2xl px-4 py-8 font-sans text-[#1f2937]">
+      <h1 className="mb-6 text-2xl font-bold text-[#0D5B49]">Usuários</h1>
+      {error && (
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
 
-      <div style={{ display: "grid", gap: 8, margin: "16px 0", maxWidth: 360 }}>
-        <input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} style={{ padding: 8 }} />
-        <input placeholder="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ padding: 8 }} />
-        <input
-          placeholder={editId ? "Nova senha (opcional)" : "Senha"}
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ padding: 8 }}
-        />
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={submit}>{editId ? "Salvar" : "Criar"}</button>
-          {editId && <button onClick={reset}>Cancelar</button>}
+      <div className="mb-6 rounded-2xl border border-[#d6e4df] bg-white p-5 shadow-[0_4px_20px_rgba(4,94,76,0.05)]">
+        <h2 className="mb-4 text-sm font-semibold text-[#045E4C]">
+          {editId ? "Editar usuário" : "Novo usuário"}
+        </h2>
+        <div className="grid gap-3 sm:max-w-sm">
+          <input
+            placeholder="Nome"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClass}
+          />
+          <input
+            placeholder="E-mail"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={inputClass}
+          />
+          <input
+            placeholder={editId ? "Nova senha (opcional)" : "Senha"}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={inputClass}
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={submit}
+              className="rounded-lg bg-[#045E4C] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0D5B49]"
+            >
+              {editId ? "Salvar" : "Criar"}
+            </button>
+            {editId && (
+              <button
+                onClick={reset}
+                className="rounded-lg border border-[#d6e4df] px-4 py-2 text-sm font-medium text-[#1f2937] transition hover:bg-[#f6f9f8]"
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
+      <ul className="divide-y divide-[#eef3f1] overflow-hidden rounded-2xl border border-[#d6e4df] bg-white shadow-[0_4px_20px_rgba(4,94,76,0.05)]">
         {items.map((u) => (
-          <li
-            key={u.id}
-            style={{ display: "flex", gap: 8, alignItems: "center", padding: "6px 0", borderBottom: "1px solid #eee" }}
-          >
-            <span style={{ flex: 1 }}>
-              {u.name} <small style={{ color: "#888" }}>{u.email}</small>
+          <li key={u.id} className="flex items-center gap-2 px-5 py-3">
+            <span className="flex-1">
+              {u.name}{" "}
+              <small className="text-gray-400">{u.email}</small>
             </span>
             <button
               onClick={() => {
@@ -101,14 +132,23 @@ export default function UsersPage() {
                 setEmail(u.email);
                 setPassword("");
               }}
+              className="rounded-lg border border-[#d6e4df] px-3 py-1.5 text-sm font-medium text-[#1f2937] transition hover:border-[#045E4C] hover:text-[#045E4C]"
             >
               Editar
             </button>
-            <button onClick={() => remove(u.id)} style={{ color: "crimson" }}>
+            <button
+              onClick={() => remove(u.id)}
+              className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+            >
               Deletar
             </button>
           </li>
         ))}
+        {items.length === 0 && (
+          <li className="px-5 py-10 text-center text-gray-400">
+            Nenhum usuário ainda.
+          </li>
+        )}
       </ul>
     </main>
   );
