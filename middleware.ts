@@ -17,6 +17,17 @@ async function expectedGate(): Promise<string> {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Atrás do nginx, o host interno (localhost:4100) vaza no redirect.
+// Reescreve host/proto a partir dos headers encaminhados.
+function fixHost(req: { headers: Headers }, u: URL): void {
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  if (host) {
+    u.protocol = (req.headers.get("x-forwarded-proto") ?? "https") + ":";
+    u.host = host;
+    u.port = "";
+  }
+}
+
 export default auth(async (req) => {
   const url = req.nextUrl;
   const pathname = url.pathname; // basePath already stripped here
@@ -32,6 +43,7 @@ export default auth(async (req) => {
     if (process.env.ADMIN_ACCESS_TOKEN && ctEq(token, process.env.ADMIN_ACCESS_TOKEN)) {
       const clean = url.clone();
       clean.searchParams.delete("token");
+      fixHost(req, clean);
       const res = NextResponse.redirect(clean);
       res.cookies.set("admin_gate", expected, {
         httpOnly: true,
@@ -56,6 +68,7 @@ export default auth(async (req) => {
     const login = url.clone();
     login.pathname = "/admin/login";
     login.search = "";
+    fixHost(req, login);
     return NextResponse.redirect(login);
   }
 
