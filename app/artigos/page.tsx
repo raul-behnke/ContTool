@@ -7,7 +7,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Artigos",
   description: "Todos os artigos do blog CONT.TOOL.",
-  alternates: { canonical: "/artigos" },
+  alternates: { canonical: "/blog/artigos" },
 };
 
 export default async function ArtigosPage({

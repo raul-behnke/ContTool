@@ -23,7 +23,7 @@ export async function generateMetadata({
     description: cat
       ? `Artigos na categoria ${cat.name}.`
       : "Categoria não encontrada.",
-    alternates: { canonical: `/categoria/${slug}` },
+    alternates: { canonical: `/blog/categoria/${slug}` },
   };
 }
 
