@@ -23,7 +23,7 @@ export default async function ArtigosPage({
     <div className="mx-auto max-w-6xl px-4 py-12">
       <header className="mb-8">
         <h1 className="text-3xl font-extrabold text-gray-900">Artigos</h1>
-        <form action="/artigos" method="get" className="mt-5 max-w-md">
+        <form action="/blog/artigos" method="get" className="mt-5 max-w-md">
           <input
             type="search"
             name="q"

@@ -17,18 +17,23 @@ function Header() {
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-xl font-extrabold tracking-tight text-brand">
-            CONT<span className="text-gray-900">.TOOL</span>
+          <Link href="/" aria-label="CONT.TOOL Blog">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/Logo-1.png"
+              alt="CONT.TOOL"
+              className="h-8 w-auto object-contain"
+            />
           </Link>
         </div>
         <nav className="flex items-center gap-4 text-sm font-medium text-gray-700">
-          <Link href="/" className="hover:text-brand">
+          <a href="https://conttool.com" className="hover:text-brand">
             Home
-          </Link>
+          </a>
           <Link href="/artigos" className="hover:text-brand">
             Artigos
           </Link>
-          <form action="/artigos" method="get" className="ml-2">
+          <form action="/blog/artigos" method="get" className="ml-2">
             <input
               type="search"
               name="q"
